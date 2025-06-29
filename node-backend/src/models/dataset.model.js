@@ -21,6 +21,10 @@ const datasetSchema = new Schema(
     modelId: {
       type: Schema.Types.ObjectId,
       ref: "Model"
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User"
     }
   },
   {

@@ -40,7 +40,8 @@ const createModel = asyncHandler(async (req, res) => {
 
   const model = await Model.create({
     modelName,
-    projectId
+    projectId,
+    userId: req.user._id
   });
 
   return res.status(201).json(

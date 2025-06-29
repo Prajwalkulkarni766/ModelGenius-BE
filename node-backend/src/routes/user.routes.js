@@ -7,8 +7,6 @@ import {
     changeCurrentPassword,
     getCurrentUser,
     updateUserAvatar,
-    getUserChannelProfile,
-    getWatchHistory,
     updateAccountDetails,
     deleteAccount
 } from "../controllers/user.controller.js";
@@ -39,8 +37,5 @@ router.route("/update-account").patch(verifyJWT, updateAccountDetails)
 router.route("/delete-account").delete(verifyJWT, deleteAccount)
 
 router.route("/avatar").patch(verifyJWT, uploadAvatarImage.single("avatar"), updateUserAvatar)
-
-router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
-router.route("/history").get(verifyJWT, getWatchHistory)
 
 export default router

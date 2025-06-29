@@ -119,3 +119,9 @@ dist
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
 .DS_Store
+
+# Uploaded files
+public/images/*
+public/avatars/*
+public/datasets/*
+public/temp/*

@@ -4,13 +4,15 @@ import { Dataset } from "../models/dataset.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import fs from 'fs/promises';
+import path from 'path';
 
 const createProject = asyncHandler(async (req, res) => {
 
   let filePath = null;
 
   if (req.files && req.files.projectFile && req.files.projectFile.length > 0) {
-    filePath = req.files.projectFile[0].path;
+    filePath = "public/images/" + req.files.projectFile[0].filename;
   }
 
   const { projectTitle, projectDescription } = req.body;
@@ -55,10 +57,7 @@ const getUserProject = asyncHandler(async (req, res) => {
 
   const modelsRealtedToThisProject = await Model.find({ projectId }).select("modelName createdAt")
 
-  const datasetRelatedToThisProject = await Dataset.find({ projectId })
-
-  // TODO: send models and datasets with the project data
-  // under model details - send modelName, mlModelName and updatedAt
+  const datasetRelatedToThisProject = await Dataset.find({ projectId }).select("originalFileName fileSize modelId createdAt")
 
   return res.status(200).json(
     new ApiResponse(200, { projectDetails, modelsRealtedToThisProject, datasetRelatedToThisProject }, "Project detail fetched Successfully")
@@ -109,11 +108,32 @@ const updateProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
 
-  if (!projectId) {
-    throw new ApiError(400, "All fields are required")
+  const project = await Project.findByIdAndDelete(projectId);
+
+  if (!project) {
+    throw new ApiError(404, "Project not found");
   }
 
-  const project = await Project.findByIdAndDelete(projectId);
+  if (project.projectFile) {
+    const filePath = path.resolve(project.projectFile);
+    await fs.unlink(filePath);
+  }
+
+  await Model.deleteMany({ projectId });
+
+  const datasets = await Dataset.find({ projectId }); 
+  
+  await Promise.all(datasets.map(async (dataset) => {
+    const filePath = path.resolve(dataset.datasetFilePath);
+    await fs.unlink(filePath);
+  }));
+
+  await Dataset.deleteMany({ projectId });
+
+  await Promise.all(datasets.map(async (dataset) => {
+    const filePath = path.resolve(dataset.datasetFilePath);
+    await fs.unlink(filePath);
+  }));
 
   return res
     .status(204)

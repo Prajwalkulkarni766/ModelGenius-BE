@@ -4,6 +4,8 @@ import { Model } from "../models/model.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import fs from 'fs/promises';
+import path from 'path';
 
 const getDatasets = asyncHandler(async (req, res) => {
   const { projectId, modelId } = req.params;
@@ -49,11 +51,12 @@ const createDataset = asyncHandler(async (req, res) => {
   const createdDatasets = await Promise.all(
     uploadedFiles.map(file => {
       return Dataset.create({
-        datasetFilePath: file.path,
+        datasetFilePath: "public/datasets/" + file.filename,
         originalFileName: file.originalname,
         fileSize: file.size,
         projectId,
-        modelId
+        modelId,
+        userId: req.user._id
       });
     })
   );
@@ -77,6 +80,9 @@ const deleteDataset = asyncHandler(async (req, res) => {
   }
 
   const datasetInfo = await Dataset.findByIdAndDelete(datasetId);
+
+  const filePath = path.resolve(datasetInfo.datasetFilePath);
+  await fs.unlink(filePath);
 
   return res.status(201).json(
     new ApiResponse(200, datasetInfo, "Dataset file deleted successfully.")
