@@ -35,27 +35,12 @@ const datasetStorage = multer.diskStorage({
   }
 });
 
-const avatarStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.resolve("public/avatars"));
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const uniqueName = uuidv4() + ext;
-    cb(null, uniqueName);
-  }
-});
-
 export const uploadDataset = multer({
   storage: datasetStorage
 });
 
 export const uploadProjectImage = multer({
   storage: projectImageStorage
-});
-
-export const uploadAvatarImage = multer({
-  storage: avatarStorage
 });
 
 export const upload = multer({

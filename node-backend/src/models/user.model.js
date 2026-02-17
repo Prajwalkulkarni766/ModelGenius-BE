@@ -19,9 +19,6 @@ const userSchema = new Schema(
             lowecase: true,
             trim: true,
         },
-        avatar: {
-            type: String,
-        },
         password: {
             type: String,
             required: [true, 'Password is required']
