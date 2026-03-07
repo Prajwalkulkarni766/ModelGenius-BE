@@ -54,6 +54,11 @@ const getUserProject = asyncHandler(async (req, res) => {
 
   const projectDetails = await Project.findById(projectId);
 
+  if (!projectDetails) throw new ApiError(404, "Project not found.");
+  if (projectDetails.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to view this project.");
+  }
+
   const modelsRealtedToThisProject = await Model.find({ projectId }).select("modelName createdAt")
 
   const datasetRelatedToThisProject = await Dataset.find({ projectId })
@@ -98,11 +103,13 @@ const updateProject = asyncHandler(async (req, res) => {
   if (projectTitle) updateFields.projectTitle = projectTitle;
   if (projectDescription) updateFields.projectDescription = projectDescription;
 
-  const project = await Project.findByIdAndUpdate(
-    projectId,
-    { $set: updateFields },
-    { new: true }
-  );
+  const project = await Project.findById(projectId);
+  if (!project) throw new ApiError(404, "Project not found.");
+  if (project.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to update this project.");
+  }
+  Object.assign(project, updateFields);
+  await project.save();
 
   return res
     .status(200)
@@ -116,7 +123,12 @@ const deleteProject = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required")
   }
 
-  const project = await Project.findByIdAndDelete(projectId);
+  const project = await Project.findById(projectId);
+  if (!project) throw new ApiError(404, "Project not found.");
+  if (project.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this project.");
+  }
+  await project.deleteOne();
 
   return res
     .status(204)

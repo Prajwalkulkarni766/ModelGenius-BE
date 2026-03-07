@@ -28,6 +28,12 @@ const createModel = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
   const { modelName } = req.body;
 
+  const project = await Project.findById(projectId);
+  if (!project) throw new ApiError(404, "Project not found.");
+  if (project.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to create a model in this project.");
+  }
+
   if (!modelName) {
     throw new ApiError(400, "All fields are required")
   }
@@ -48,6 +54,10 @@ const updateModel = asyncHandler(async (req, res) => {
   const project = await Project.findById(projectId);
   if (!project) {
     throw new ApiError(404, "Project not found.");
+  }
+
+  if (project.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to update models in this project.");
   }
 
   const model = await Model.findOne({ _id: modelId, projectId });
@@ -74,10 +84,16 @@ const deleteModel = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Project not found.");
   }
 
-  const model = await Model.findByIdAndDelete(modelId);
+  if (project.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, "You are not authorized to delete this model.");
+  }
+
+  const model = await Model.findById(modelId);
   if (!model) {
     throw new ApiError(404, "Model not found.");
   }
+
+  await Model.findByIdAndDelete(modelId);
 
   const datasets = await Dataset.find({ modelId });
   await Dataset.deleteMany({ modelId });
