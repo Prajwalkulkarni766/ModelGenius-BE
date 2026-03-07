@@ -19,7 +19,7 @@ const createNotification = asyncHandler(async (req, res) => {
   });
 
   return res.status(201).json(
-    new ApiResponse(200, notification, "Notification generated Successfully")
+    new ApiResponse(201, notification, "Notification generated Successfully")
   )
 })
 

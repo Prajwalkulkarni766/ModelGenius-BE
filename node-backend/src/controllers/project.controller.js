@@ -29,7 +29,7 @@ const createProject = asyncHandler(async (req, res) => {
   });
 
   return res.status(201).json(
-    new ApiResponse(200, project, "Project created Successfully")
+    new ApiResponse(201, project, "Project created Successfully")
   )
 })
 
@@ -84,21 +84,23 @@ const getUserLatestProjects = asyncHandler(async (req, res) => {
 })
 
 const updateProject = asyncHandler(async (req, res) => {
-  const { title, description } = req.body
-  const { projectId } = params
+  const { projectTitle, projectDescription } = req.body
+  const { projectId } = req.params
 
-  if (!projectId || !title || !description) {
-    throw new ApiError(400, "All fields are required")
+  if (!projectId) {
+    throw new ApiError(400, "Project ID is required")
   }
+
+  if (!projectTitle && !projectDescription) {
+    throw new ApiError(400, "At least one field is required")
+  }
+  const updateFields = {};
+  if (projectTitle) updateFields.projectTitle = projectTitle;
+  if (projectDescription) updateFields.projectDescription = projectDescription;
 
   const project = await Project.findByIdAndUpdate(
     projectId,
-    {
-      $set: {
-        title,
-        description
-      }
-    },
+    { $set: updateFields },
     { new: true }
   );
 
