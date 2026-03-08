@@ -116,14 +116,6 @@ const getDatasetColumns = asyncHandler(async (req, res) => {
 });
 
 
-export {
-  getDatasets,
-  createDataset,
-  deleteDataset,
-  getDatasetColumns,
-  getDatasetPreview
-}
-
 const getDatasetPreview = asyncHandler(async (req, res) => {
   const { projectId, datasetId } = req.params;
 
@@ -184,3 +176,11 @@ const getDatasetPreview = asyncHandler(async (req, res) => {
     new ApiResponse(200, results, "Dataset preview fetched successfully")
   );
 });
+
+export {
+  getDatasets,
+  createDataset,
+  deleteDataset,
+  getDatasetColumns,
+  getDatasetPreview
+}
