@@ -31,7 +31,6 @@ app.use("/api/v1/notifications", notificationRouter)
 app.use("/api/v1/projects", projectRouter)
 app.use("/api/v1/models", modelRouter)
 app.use("/api/v1/datasets", datasetRouter)
-app.use("/api/v1/setting", datasetRouter)
 app.use('/public', express.static('public'))
 
 app.use(errorHandler)
