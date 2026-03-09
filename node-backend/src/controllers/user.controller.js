@@ -1,9 +1,14 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
+import { Project } from "../models/project.model.js"
+import { Model } from "../models/model.model.js"
+import { Dataset } from "../models/dataset.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import fs from "fs/promises"
+import path from "path";
 
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
@@ -262,7 +267,23 @@ const deleteAccount = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Incorrect password");
     }
 
-    // TODO: delete project related to this user
+    const userProjects = await Project.find({ userId: req.user._id });
+    const projectIds = userProjects.map(p => p._id);
+    const models = await Model.find({ projectId: { $in: projectIds } });
+    const datasets = await Dataset.find({ projectId: { $in: projectIds } });
+
+    await Model.deleteMany({ projectId: { $in: projectIds } });
+    await Dataset.deleteMany({ projectId: { $in: projectIds } });
+    await Project.deleteMany({ userId: req.user._id });
+
+    const filesToDelete = [
+        ...userProjects.map(p => p.projectFile),
+        ...datasets.map(d => d.datasetFilePath),
+        ...models.filter(m => m.modelPath).map(m => m.modelPath)
+    ];
+    await Promise.allSettled(
+        filesToDelete.filter(Boolean).map(f => fs.unlink(path.resolve(f)))
+    );
 
     await user.deleteOne();
 

@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import path from "path"
+import fs from "fs/promises"
 
 const createProject = asyncHandler(async (req, res) => {
 
@@ -128,7 +129,22 @@ const deleteProject = asyncHandler(async (req, res) => {
   if (project.userId.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not authorized to delete this project.");
   }
+
+  const models = await Model.find({ projectId });
+  const datasets = await Dataset.find({ projectId });
+
+  await Model.deleteMany({ projectId });
+  await Dataset.deleteMany({ projectId });
   await project.deleteOne();
+
+  const filesToDelete = [
+    project.projectFile,
+    ...datasets.map(d => d.datasetFilePath),
+    ...models.filter(m => m.modelPath).map(m => m.modelPath)
+  ];
+  await Promise.allSettled(
+    filesToDelete.filter(Boolean).map(f => fs.unlink(path.resolve(f)))
+  );
 
   return res
     .status(204)
