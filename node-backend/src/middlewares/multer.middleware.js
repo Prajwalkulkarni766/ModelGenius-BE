@@ -1,6 +1,24 @@
 import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { ApiError } from "../utils/ApiError.js";
+
+const datasetFileFilter = (req, file, cb) => {
+  if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    cb(null, true);
+  } else {
+    cb(new ApiError(400, 'Only CSV files are allowed for datasets'), false);
+  }
+};
+
+const projectImageFileFilter = (req, file, cb) => {
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new ApiError(400, 'Only image files (JPEG, PNG, GIF, WEBP) are allowed for project images'), false);
+  }
+};
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -36,11 +54,13 @@ const datasetStorage = multer.diskStorage({
 });
 
 export const uploadDataset = multer({
-  storage: datasetStorage
+  storage: datasetStorage,
+  fileFilter: datasetFileFilter
 });
 
 export const uploadProjectImage = multer({
-  storage: projectImageStorage
+  storage: projectImageStorage,
+  fileFilter: projectImageFileFilter
 });
 
 export const upload = multer({
