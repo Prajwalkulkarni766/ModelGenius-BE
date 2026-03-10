@@ -65,8 +65,17 @@ const updateModel = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Model not found or does not belong to this project.");
   }
 
-  Object.keys(req.body).forEach((key) => {
-    model[key] = req.body[key];
+  const ALLOWED_FIELDS = [
+    'modelName',
+    'datasetId',
+    'targetColumn',
+    'handlingMissingValueStrategy',
+    'encodingCategoricalMethod',
+    'normalizationTechnique',
+    'algorithm'
+  ];
+  ALLOWED_FIELDS.forEach((key) => {
+    if (req.body[key] !== undefined) model[key] = req.body[key];
   });
 
   await model.save();
