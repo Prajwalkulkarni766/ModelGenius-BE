@@ -147,8 +147,8 @@ const deleteProject = asyncHandler(async (req, res) => {
   );
 
   return res
-    .status(204)
-    .json(new ApiResponse(204, project, "Project deleted successfully"))
+    .status(200)
+    .json(new ApiResponse(200, { id: projectId }, "Project deleted successfully"))
 })
 
 export {
