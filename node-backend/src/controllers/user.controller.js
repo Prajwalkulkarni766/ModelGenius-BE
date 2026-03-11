@@ -245,7 +245,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         },
         { new: true }
 
-    ).select("-password")
+    ).select("-password -refreshToken")
 
     return res
         .status(200)
@@ -295,7 +295,7 @@ const getProfile = asyncHandler(async (req, res) => {
 
     const id = req.user.id;
 
-    const user = await User.findById(id);
+    const user = await User.findById(id).select("-password -refreshToken");
 
     if (!user) {
         return res.status(400).json(new ApiError(400, "Problem while fetching user profile"));
