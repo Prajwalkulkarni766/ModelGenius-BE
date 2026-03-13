@@ -267,22 +267,15 @@ const exportModel = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Model file path not found. Please train the model first.");
   }
 
-  const filePath = path.resolve(model.modelPath);
+  const pythonBase = process.env.PYTHON_MICROSERVICE.replace('/train', '');
+  const downloadUrl = `${pythonBase}/download-model/${model.modelPath}`;
 
-  try {
-    await fs.access(filePath);
-  } catch (error) {
-    throw new ApiError(404, "Model file not found on server.");
-  }
+  const pyResponse = await axios.get(downloadUrl, { responseType: 'stream' });
 
-  return res.download(filePath, (err) => {
-    if (err) {
-      console.error("File download error:", err);
-      if (!res.headersSent) {
-        res.status(500).send("Could not download file.");
-      }
-    }
-  });
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="${model.modelPath}"`);
+
+  pyResponse.data.pipe(res);
 });
 
 const exportModelCode = asyncHandler(async (req, res) => {

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, FileResponse
 from pydantic import BaseModel
 import pandas as pd
 from code_generator import generate_model_code
@@ -292,7 +292,7 @@ def train_model(X, y, algorithm):
     return {
         "problem_type": problem_type,
         **metrics,
-        "model_path": os.path.abspath(model_path)
+        "model_path": os.path.basename(model_path)
     }
 
 
@@ -318,3 +318,15 @@ def generate_code(request: CodeGenerationRequest):
         return code
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Code generation failed: {str(e)}")
+
+
+@app.get("/download-model/{filename}")
+def download_model(filename: str):
+    file_path = os.path.join("models", filename)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="Model file not found")
+    return FileResponse(
+        path=file_path,
+        media_type="application/octet-stream",
+        filename=filename
+    )
