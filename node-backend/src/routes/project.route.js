@@ -14,16 +14,13 @@ const router = Router();
 router.use(verifyJWT);
 
 // Project route
-router.route("/").post(uploadProjectImage.fields([
-  {
-    name: "projectFile",
-    maxCount: 1,
-  },
-]), createProject);
-router.route("/projects").get(getUserProjects);
+router.route("/")
+  .get(getUserProjects)
+  .post(uploadProjectImage.fields([{ name: "projectFile", maxCount: 1 }]), createProject);
 router.route("/latest").get(getUserLatestProjects);
-router.route("/:projectId").get(getUserProject);
-router.route("/:projectId").patch(updateProject);
-router.route("/:projectId").delete(deleteProject);
+router.route("/:projectId")
+  .get(getUserProject)
+  .patch(updateProject)
+  .delete(deleteProject);
 
 export default router
