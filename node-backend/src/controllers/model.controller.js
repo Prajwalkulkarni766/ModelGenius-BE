@@ -2,7 +2,8 @@ import { Project } from "../models/project.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { Model } from "../models/model.model.js"
+import logger from "../utils/logger.js"
+import { Model } from "../models/model.js"
 import { Dataset } from '../models/dataset.model.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -112,7 +113,7 @@ const deleteModel = asyncHandler(async (req, res) => {
       const filePath = path.resolve(dataset.datasetFilePath);
       await fs.unlink(filePath);
     } catch (error) {
-      console.warn(`Failed to delete file at ${dataset.datasetFilePath}:`, error.message);
+      logger.warn("Failed to delete dataset file", { path: dataset.datasetFilePath, error: error.message });
     }
   }
 
@@ -150,14 +151,14 @@ const trainDryRunModel = asyncHandler(async (req, res) => {
     target_column: targetColumn || model.targetColumn
   };
 
-  console.log("dry run payload", payload)
+  logger.debug("trainDryRunModel payload", { payload })
 
   const response = await axios.post(
     process.env.PYTHON_MICROSERVICE,
     payload
   );
 
-  console.log("dry run response", response.data)
+  logger.debug("trainDryRunModel response", { data: response.data })
 
   const {
     problem_type,
@@ -204,14 +205,14 @@ const trainModel = asyncHandler(async (req, res) => {
     target_column: model.targetColumn
   };
 
-  console.log("payload", payload)
+  logger.debug("trainModel payload", { payload })
 
   const response = await axios.post(
     process.env.PYTHON_MICROSERVICE,
     payload
   );
 
-  console.log("response", response.data)
+  logger.debug("trainModel response", { data: response.data })
 
   const {
     problem_type,
@@ -317,7 +318,7 @@ const exportModelCode = asyncHandler(async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     return res.send(code);
   } catch (error) {
-    console.error("Code generation error:", error.message);
+    logger.error("exportModelCode failed", { error: error.message });
     throw new ApiError(500, "Failed to generate Python code.");
   }
 });
@@ -381,7 +382,7 @@ Keep responses concise and actionable.`;
       new ApiResponse(200, { reply }, "Chat response generated successfully")
     );
   } catch (error) {
-    console.error("AI Chat error:", error.message);
+    logger.error("aiChat failed", { error: error.message });
     throw new ApiError(500, "Failed to get AI response");
   }
 });
