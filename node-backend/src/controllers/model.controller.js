@@ -155,7 +155,8 @@ const trainDryRunModel = asyncHandler(async (req, res) => {
 
   const response = await axios.post(
     process.env.PYTHON_MICROSERVICE,
-    payload
+    payload,
+    { timeout: 120_000 }
   );
 
   logger.debug("trainDryRunModel response", { data: response.data })
@@ -209,7 +210,8 @@ const trainModel = asyncHandler(async (req, res) => {
 
   const response = await axios.post(
     process.env.PYTHON_MICROSERVICE,
-    payload
+    payload,
+    { timeout: 120_000 }
   );
 
   logger.debug("trainModel response", { data: response.data })
@@ -271,7 +273,7 @@ const exportModel = asyncHandler(async (req, res) => {
   const pythonBase = process.env.PYTHON_MICROSERVICE.replace('/train', '');
   const downloadUrl = `${pythonBase}/download-model/${model.modelPath}`;
 
-  const pyResponse = await axios.get(downloadUrl, { responseType: 'stream' });
+  const pyResponse = await axios.get(downloadUrl, { responseType: 'stream', timeout: 30_000 });
 
   res.setHeader('Content-Type', 'application/octet-stream');
   res.setHeader('Content-Disposition', `attachment; filename="${model.modelPath}"`);
@@ -308,7 +310,7 @@ const exportModelCode = asyncHandler(async (req, res) => {
     const response = await axios.post(
       `${process.env.PYTHON_MICROSERVICE?.replace('/train', '')}/generate-code`,
       payload,
-      { responseType: 'text' }
+      { responseType: 'text', timeout: 30_000 }
     );
 
     const code = response.data;
