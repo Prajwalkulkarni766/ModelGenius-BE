@@ -3,9 +3,11 @@ import csv from "csv-parser";
 
 export const extractCsvColumns = (filePath) => {
   return new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
+    const stream = fs.createReadStream(filePath);
+    stream
       .pipe(csv())
       .on("headers", (headers) => {
+        stream.destroy();
         resolve(headers);
       })
       .on("error", (error) => {
