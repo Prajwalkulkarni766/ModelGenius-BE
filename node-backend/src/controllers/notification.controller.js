@@ -5,9 +5,10 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 const createNotification = asyncHandler(async (req, res) => {
 
-  const { severity, title, description, userId } = req.body;
+  const { severity, title, description } = req.body;
+  const userId = req.user._id;
 
-  if (!severity || !title || !description || !userId) {
+  if (!severity || !title || !description) {
     throw new ApiError(400, "All fields are required")
   }
 
