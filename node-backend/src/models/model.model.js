@@ -70,16 +70,8 @@ const modelSchema = new Schema({
     default: null,
   },
   metrics: {
-    // Classification
-    accuracy: { type: Number },
-    precision: { type: Number },
-    recall: { type: Number },
-    f1_score: { type: Number },
-
-    // Regression
-    mse: { type: Number },
-    rmse: { type: Number },
-    r2_score: { type: Number },
+    type: Schema.Types.Mixed,
+    default: null,
   },
   modelPath: {
     type: String

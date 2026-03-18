@@ -236,6 +236,7 @@ const trainModel = asyncHandler(async (req, res) => {
     model.metrics = { accuracy, precision, recall, f1_score };
   }
 
+  model.markModified('metrics');
   await model.save();
 
   if (problem_type === "regression") {
