@@ -8,7 +8,6 @@ import {
   getUserProject
 } from "../controllers/project.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
-import { uploadProjectImage } from "../middlewares/multer.middleware.js"
 
 const router = Router();
 router.use(verifyJWT);
@@ -16,7 +15,7 @@ router.use(verifyJWT);
 // Project route
 router.route("/")
   .get(getUserProjects)
-  .post(uploadProjectImage.fields([{ name: "projectFile", maxCount: 1 }]), createProject);
+  .post(createProject);
 router.route("/latest").get(getUserLatestProjects);
 router.route("/:projectId")
   .get(getUserProject)

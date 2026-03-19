@@ -9,12 +9,6 @@ import fs from "fs/promises"
 
 const createProject = asyncHandler(async (req, res) => {
 
-  let filePath = null;
-
-  if (req.files && req.files.projectFile && req.files.projectFile.length > 0) {
-    filePath = `public/images/${path.basename(req.files.projectFile[0].path)}`;
-  }
-
   const { projectTitle, projectDescription } = req.body;
   const { _id } = req.user;
 
@@ -25,8 +19,7 @@ const createProject = asyncHandler(async (req, res) => {
   const project = await Project.create({
     projectTitle,
     projectDescription,
-    userId: _id,
-    projectFile: filePath
+    userId: _id
   });
 
   return res.status(201).json(
@@ -138,7 +131,6 @@ const deleteProject = asyncHandler(async (req, res) => {
   await project.deleteOne();
 
   const filesToDelete = [
-    project.projectFile,
     ...datasets.map(d => d.datasetFilePath),
     ...models.filter(m => m.modelPath).map(m => m.modelPath)
   ];

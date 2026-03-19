@@ -9,9 +9,6 @@ const projectSchema = new Schema({
     type: String,
     required: true
   },
-  projectFile: {
-    type: String
-  },
   userId: {
     type: Schema.Types.ObjectId,
     ref: "User"

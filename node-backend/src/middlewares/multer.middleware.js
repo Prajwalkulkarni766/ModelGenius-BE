@@ -11,29 +11,9 @@ const datasetFileFilter = (req, file, cb) => {
   }
 };
 
-const projectImageFileFilter = (req, file, cb) => {
-  const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new ApiError(400, 'Only image files (JPEG, PNG, GIF, WEBP) are allowed for project images'), false);
-  }
-};
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.resolve("public/temp"));
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const uniqueName = uuidv4() + ext;
-    cb(null, uniqueName);
-  }
-});
-
-const projectImageStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.resolve("public/images"));
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -56,11 +36,6 @@ const datasetStorage = multer.diskStorage({
 export const uploadDataset = multer({
   storage: datasetStorage,
   fileFilter: datasetFileFilter
-});
-
-export const uploadProjectImage = multer({
-  storage: projectImageStorage,
-  fileFilter: projectImageFileFilter
 });
 
 export const upload = multer({
