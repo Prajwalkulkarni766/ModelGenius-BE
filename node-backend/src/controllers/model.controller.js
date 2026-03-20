@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import logger from "../utils/logger.js"
-import { Model } from "../models/model.js"
+import { Model } from "../models/model.model.js"
 import { Dataset } from '../models/dataset.model.js';
 import fs from 'fs/promises';
 import path from 'path';
