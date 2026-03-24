@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
-    "start": "node -r dotenv/config --experimental-json-modules src/index.js"
+    "start": "node -r dotenv/config --experimental-json-modules src/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [
     "javascript",
@@ -16,6 +18,12 @@
   "author": "Prajwal",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-import-resolver-node": "^0.3.9",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^17.4.0",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3"
   },
