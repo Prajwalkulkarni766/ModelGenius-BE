@@ -170,7 +170,6 @@ const trainDryRunModel = asyncHandler(async (req, res) => {
     mse,
     rmse,
     r2_score,
-    model_path
   } = response.data;
 
   if (problem_type === "regression") {

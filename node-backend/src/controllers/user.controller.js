@@ -6,7 +6,6 @@ import { Model } from "../models/model.model.js"
 import { Dataset } from "../models/dataset.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-import mongoose from "mongoose";
 import fs from "fs/promises"
 import path from "path";
 
