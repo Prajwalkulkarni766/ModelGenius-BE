@@ -9,7 +9,8 @@ import {
   trainDryRunModel,
   exportModel,
   exportModelCode,
-  aiChat
+  aiChat,
+  getAiAgents
 } from "../controllers/model.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 
@@ -24,6 +25,7 @@ router.route("/:projectId/models/:modelId/train-dry-run").post(trainDryRunModel)
 router.route("/:projectId/models/:modelId/export").get(exportModel);
 router.route("/:projectId/models/:modelId/export-code").get(exportModelCode);
 router.route("/:projectId/models/:modelId/ai-chat").post(aiChat);
+router.route("/ai-agents").get(getAiAgents);
 router.route("/:projectId/models/:modelId").get(getModel);
 router.route("/:projectId/models/:modelId").patch(updateModel);
 router.route("/:projectId/models/:modelId").delete(deleteModel);

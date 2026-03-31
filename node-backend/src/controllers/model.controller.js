@@ -325,9 +325,24 @@ const exportModelCode = asyncHandler(async (req, res) => {
   }
 });
 
+const getAiAgents = asyncHandler(async (req, res) => {
+  const agents = [
+    {
+      id: "arcee-ai/trinity-large-preview:free",
+      name: "Trinity Large Preview",
+      provider: "Arcee AI",
+      description: "A powerful large language model optimised for reasoning and instruction-following tasks. It can help you with various tasks such as data analysis, model training, and model evaluation.",
+      free: true,
+    },
+  ];
+  return res.status(200).json(
+    new ApiResponse(200, agents, "AI agents fetched successfully")
+  );
+});
+
 const aiChat = asyncHandler(async (req, res) => {
   const { projectId, modelId } = req.params;
-  const { message, chatHistory } = req.body;
+  const { message, chatHistory, agentId } = req.body;
 
   if (!message) {
     throw new ApiError(400, "Message is required");
@@ -367,7 +382,7 @@ Keep responses concise and actionable.`;
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: 'arcee-ai/trinity-large-preview:free',
+        model: agentId || 'arcee-ai/trinity-large-preview:free',
         messages: messages
       },
       {
@@ -399,5 +414,6 @@ export {
   trainDryRunModel,
   exportModel,
   exportModelCode,
-  aiChat
+  aiChat,
+  getAiAgents
 }
