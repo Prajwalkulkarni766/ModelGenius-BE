@@ -45,6 +45,17 @@ CLEANING_STRATEGIES = [
   "mode", "constant", "ffill", "bfill", "knn", "interpolation"
 ]
 
+CLASSIFICATION_ALGOS = [
+    "logistic", "knn", "svm",
+    "random_forest", "gradient_boosting"
+]
+
+REGRESSION_ALGOS = [
+    "linear_regression",
+    "random_forest",
+    "gradient_boosting"
+]
+
 
 # -------------------------
 # Request schema
@@ -122,6 +133,26 @@ def train(request: MLRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Preprocessing failed: {str(e)}")
+
+
+    is_regression = is_regression_target(y)
+    problem_type = "regression" if is_regression else "classification"
+
+    algorithm = request.algorithm.lower()
+
+    if problem_type == "classification" and algorithm not in CLASSIFICATION_ALGOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Configuration error: '{algorithm}' is not valid for classification problems. "
+                f"Allowed: {CLASSIFICATION_ALGOS}"
+    )
+
+    if problem_type == "regression" and algorithm not in REGRESSION_ALGOS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Configuration error: '{algorithm}' is not valid for regression problems. "
+                f"Allowed: {REGRESSION_ALGOS}"
+    )
 
     # -------------------------
     # Step 5: Train model

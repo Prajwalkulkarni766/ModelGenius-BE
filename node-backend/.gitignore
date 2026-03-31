@@ -90,7 +90,14 @@ dist
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
 # https://nextjs.org/blog/next-9-1#public-directory-support
-# public
+public/datasets/*
+!public/datasets/.gitkeep
+
+public/images/*
+!public/images/.gitkeep
+
+public/temp/*
+!public/temp/.gitkeep
 
 # vuepress build output
 .vuepress/dist
