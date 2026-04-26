@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import logging
+from logger_config import logger
 
 from sklearn.preprocessing import (
     StandardScaler, MinMaxScaler,
@@ -11,27 +13,45 @@ from sklearn.impute import KNNImputer
 import category_encoders as ce
 
 def preprocess_data(df, target, cleaning, encoding, normalization):
+    logger.info("Preprocessing data", {"target": target, "cleaning": cleaning})
+    
     if target not in df.columns:
+        logger.error(f"Target column not found: {target}")
         raise ValueError("Target column not found")
 
     # -------------------------
     # Handle missing values
     # -------------------------
     if cleaning == "drop_rows":
+        logger.debug("Cleaning: dropping rows with missing values")
         df = df.dropna()
     elif cleaning == "drop_columns":
+        logger.debug("Cleaning: dropping columns with missing values")
         df = df.dropna(axis=1)
     elif cleaning == "mean":
+        logger.debug("Cleaning: filling with mean")
         df = df.fillna(df.mean(numeric_only=True))
     elif cleaning == "median":
+        logger.debug("Cleaning: filling with median")
         df = df.fillna(df.median(numeric_only=True))
     elif cleaning == "mode":
+        logger.debug("Cleaning: filling with mode")
         df = df.fillna(df.mode().iloc[0])
     elif cleaning == "ffill":
+        logger.debug("Cleaning: forward fill")
         df = df.ffill()
     elif cleaning == "bfill":
+        logger.debug("Cleaning: backward fill")
         df = df.bfill()
     elif cleaning == "knn":
+        logger.debug("Cleaning: KNN imputation")
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if not numeric_cols.empty:
+            imputer = KNNImputer(n_neighbors=5)
+            df[numeric_cols] = imputer.fit_transform(df[numeric_cols])
+        df = df.fillna(df.mode().iloc[0])
+
+    logger.info(f"Missing values handled, rows remaining: {len(df)}")
         # KNN Imputer only works on numeric data usually, or needs encoding first.
         # But standard sklearn KNNImputer is for numeric. 
         # For simplicity, let's apply it to numeric columns only and fill others with mode?

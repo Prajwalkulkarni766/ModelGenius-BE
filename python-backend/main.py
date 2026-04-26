@@ -7,6 +7,8 @@ import numpy as np
 import os, time, joblib
 import category_encoders as ce
 from sklearn.impute import KNNImputer
+import logging
+from logger_config import logger, mask_sensitive_fields
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, LabelEncoder, QuantileTransformer, PowerTransformer
 from sklearn.model_selection import train_test_split
@@ -21,6 +23,16 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 
 app = FastAPI(title="ML Training Service")
+
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info(f"ML Training Service starting")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    logger.info("ML Training Service shutting down")
 
 # -------------------------
 # Allowed options
@@ -82,19 +94,31 @@ class CodeGenerationRequest(BaseModel):
 # -------------------------
 @app.post("/train")
 def train(request: MLRequest):
+    logger.info("Train endpoint called", {
+        "target_column": request.target_column,
+        "algorithm": request.algorithm,
+        "cleaning_strategy": request.cleaning_strategy,
+        "encoding_method": request.encoding_method,
+        "normalization_technique": request.normalization_technique,
+    })
+    
     # -------------------------
     # Step 1: Validate inputs
     # -------------------------
     if request.algorithm.lower() not in ALGORITHMS:
+        logger.warning(f"Unsupported algorithm: {request.algorithm}")
         raise HTTPException(status_code=400, detail=f"Unsupported algorithm: {request.algorithm}. Supported: {ALGORITHMS}")
 
     if request.encoding_method.lower() not in ENCODINGS:
+        logger.warning(f"Unsupported encoding method: {request.encoding_method}")
         raise HTTPException(status_code=400, detail=f"Unsupported encoding method: {request.encoding_method}. Supported: {ENCODINGS}")
 
     if request.normalization_technique.lower() not in NORMALIZATIONS:
+        logger.warning(f"Unsupported normalization: {request.normalization_technique}")
         raise HTTPException(status_code=400, detail=f"Unsupported normalization technique: {request.normalization_technique}. Supported: {NORMALIZATIONS}")
 
     if request.cleaning_strategy.lower() not in CLEANING_STRATEGIES:
+        logger.warning(f"Unsupported cleaning strategy: {request.cleaning_strategy}")
         raise HTTPException(status_code=400, detail=f"Unsupported cleaning strategy: {request.cleaning_strategy}. Supported: {CLEANING_STRATEGIES}")
 
     # -------------------------
@@ -103,11 +127,15 @@ def train(request: MLRequest):
     try:
         df = pd.read_csv(request.dataset_path)
         df.columns = df.columns.str.strip()
+        logger.info(f"Dataset loaded: {request.dataset_path}", {"rows": len(df)})
     except FileNotFoundError:
+        logger.error(f"Dataset not found: {request.dataset_path}")
         raise HTTPException(status_code=400, detail=f"Dataset not found at path: {request.dataset_path}")
     except pd.errors.EmptyDataError:
+        logger.error("Dataset is empty")
         raise HTTPException(status_code=400, detail="Dataset is empty")
     except Exception as e:
+        logger.error(f"Failed to read dataset: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Failed to read dataset: {str(e)}")
 
     # -------------------------
@@ -115,6 +143,7 @@ def train(request: MLRequest):
     # -------------------------
     target_col = request.target_column.strip()
     if target_col not in df.columns:
+        logger.warning(f"Target column not found: {target_col}")
         raise HTTPException(
             status_code=400,
             detail=f"Target column '{target_col}' not found in dataset. Columns: {df.columns.tolist()}"
@@ -124,6 +153,12 @@ def train(request: MLRequest):
     # Step 4: Preprocess
     # -------------------------
     try:
+        logger.info("Starting preprocessing", {
+            "target": target_col,
+            "cleaning": request.cleaning_strategy.lower(),
+            "encoding": request.encoding_method.lower(),
+            "normalization": request.normalization_technique.lower()
+        })
         X, y = preprocess_data(
             df=df,
             target=target_col,
@@ -132,6 +167,7 @@ def train(request: MLRequest):
             normalization=request.normalization_technique.lower()
         )
     except Exception as e:
+        logger.error(f"Preprocessing failed: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Preprocessing failed: {str(e)}")
 
 
@@ -140,29 +176,37 @@ def train(request: MLRequest):
 
     algorithm = request.algorithm.lower()
 
+    logger.info(f"Problem type detected: {problem_type}", {"algorithm": algorithm})
+
     if problem_type == "classification" and algorithm not in CLASSIFICATION_ALGOS:
+        logger.warning(f"Algorithm not valid for classification: {algorithm}")
         raise HTTPException(
             status_code=400,
             detail=f"Configuration error: '{algorithm}' is not valid for classification problems. "
                 f"Allowed: {CLASSIFICATION_ALGOS}"
-    )
+        )
 
     if problem_type == "regression" and algorithm not in REGRESSION_ALGOS:
+        logger.warning(f"Algorithm not valid for regression: {algorithm}")
         raise HTTPException(
             status_code=400,
             detail=f"Configuration error: '{algorithm}' is not valid for regression problems. "
                 f"Allowed: {REGRESSION_ALGOS}"
-    )
+        )
 
     # -------------------------
     # Step 5: Train model
     # -------------------------
     try:
+        logger.info(f"Starting model training", {"algorithm": request.algorithm.lower()})
         result = train_model(X, y, request.algorithm.lower())
+        logger.info(f"Model training completed", {**result})
         return result
     except ValueError as ve:
+        logger.error(f"Algorithm error: {str(ve)}")
         raise HTTPException(status_code=400, detail=f"Algorithm error: {str(ve)}")
     except Exception as e:
+        logger.error(f"Model training failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Model training failed: {str(e)}")
 
 
@@ -337,7 +381,13 @@ def generate_code(request: CodeGenerationRequest):
     Returns the code as plain text for download.
     """
 
-    print("generating the code")
+    logger.info("Code generation requested", {
+        "target_column": request.target_column,
+        "algorithm": request.algorithm,
+        "cleaning_strategy": request.cleaning_strategy,
+        "encoding_method": request.encoding_method,
+        "normalization_technique": request.normalization_technique,
+    })
     try:
         code = generate_model_code(
             target_column=request.target_column,
@@ -346,8 +396,10 @@ def generate_code(request: CodeGenerationRequest):
             encoding_method=request.encoding_method,
             normalization_technique=request.normalization_technique
         )
+        logger.info("Code generation completed")
         return code
     except Exception as e:
+        logger.error(f"Code generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Code generation failed: {str(e)}")
 
 

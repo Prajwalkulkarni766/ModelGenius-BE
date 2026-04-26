@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
+import logger, { maskSensitiveFields } from "../utils/logger.js";
 
 const errorHandler = (err, req, res, next) => {
   let success = err.success || false;
@@ -11,6 +12,18 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 500;
     message = "Internal Server Error";
   }
+
+  logger.error("Request error", {
+    method: req.method,
+    url: req.originalUrl,
+    status: statusCode,
+    message,
+    errors,
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    payload: req.body && Object.keys(req.body).length > 0 
+      ? maskSensitiveFields(req.body) 
+      : undefined,
+  });
 
   return res.status(statusCode).json({
     success: false,

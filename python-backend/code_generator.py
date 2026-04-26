@@ -3,6 +3,9 @@ Code Generator Module
 Generates Python code from model configuration for export.
 """
 
+import logging
+from logger_config import logger
+
 
 def generate_model_code(
     target_column: str,
@@ -178,5 +181,10 @@ predictions = model.predict(X_test)
 except:
     print("MSE:", mean_squared_error(y_test, predictions))
 '''
+    
+    logger.info("Code generated successfully", {
+        "target_column": target_column,
+        "algorithm": algorithm,
+    })
     
     return code
